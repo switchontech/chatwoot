@@ -11,9 +11,9 @@ import StatsLiveReportsContainer from './components/StatsLiveReportsContainer.vu
   <ReportHeader :header-title="$t('OVERVIEW_REPORTS.HEADER')" />
   <div class="flex flex-col gap-4 pb-6">
     <StatsLiveReportsContainer />
+    <TeamLiveReportContainer />
     <ConversationHeatmapContainer />
     <ResolutionHeatmapContainer />
     <AgentLiveReportContainer />
-    <TeamLiveReportContainer />
   </div>
 </template>
