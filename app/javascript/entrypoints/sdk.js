@@ -198,10 +198,22 @@ const runSDK = ({ baseUrl, websiteToken }) => {
     },
 
     disconnect() {
-      console.log(emitter)
-      emitter.emit('WEBSOCKET_DISCONNECT')
+      console.log('IFRAME OBJ', IFrameHelper)
+      const iframe = IFrameHelper.getAppFrame();
+      console.log('IFRAME APP FRAME', iframe, iframe?.parentElement)
+      if (iframe) {
+        iframe.remove();
+      }
+      console.log('window', window.$chatwoot)
+      // remove our SDK globals
+      delete window.$chatwoot;
     },
-    
+    connect() {
+      IFrameHelper.createFrame({
+        baseUrl,
+        websiteToken,
+      });
+    },
   };
 
   IFrameHelper.createFrame({
