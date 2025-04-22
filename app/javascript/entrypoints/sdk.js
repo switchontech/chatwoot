@@ -17,7 +17,7 @@ import {
 } from '../sdk/DOMHelpers';
 import { setCookieWithDomain } from '../sdk/cookieHelpers';
 import { SDK_SET_BUBBLE_VISIBILITY } from 'shared/constants/sharedFrameEvents';
-
+import { emitter } from '../shared/helpers/mitt';
 const runSDK = ({ baseUrl, websiteToken }) => {
   if (window.$chatwoot) {
     return;
@@ -198,15 +198,8 @@ const runSDK = ({ baseUrl, websiteToken }) => {
     },
 
     disconnect() {
-      console.log('IFRAME OBJ', IFrameHelper)
-      const iframe = IFrameHelper.getAppFrame();
-      console.log('IFRAME APP FRAME', iframe, iframe?.parentElement)
-      if (iframe && iframe.parentElement) {
-        iframe.parentElement.remove();
-      }
-      console.log('window', window.$chatwoot)
-      // remove our SDK globals
-      delete window.$chatwoot;
+      console.log(emitter)
+      emitter.emit('WEBSOCKET_DISCONNECT')
     },
     
   };
