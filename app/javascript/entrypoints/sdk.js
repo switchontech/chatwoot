@@ -178,6 +178,7 @@ const runSDK = ({ baseUrl, websiteToken }) => {
         darkMode: getDarkMode(darkMode),
       });
     },
+    
 
     reset() {
       if (window.$chatwoot.isOpen) {
@@ -195,6 +196,19 @@ const runSDK = ({ baseUrl, websiteToken }) => {
 
       window.$chatwoot.resetTriggered = true;
     },
+
+    disconnect() {
+      console.log('IFRAME OBJ', IFrameHelper)
+      const iframe = IFrameHelper.getAppFrame();
+      console.log('IFRAME APP FRAME', iframe, iframe?.parentElement)
+      if (iframe && iframe.parentElement) {
+        iframe.parentElement.remove();
+      }
+      console.log('window', window.$chatwoot)
+      // remove our SDK globals
+      delete window.$chatwoot;
+    },
+    
   };
 
   IFrameHelper.createFrame({
@@ -205,4 +219,12 @@ const runSDK = ({ baseUrl, websiteToken }) => {
 
 window.chatwootSDK = {
   run: runSDK,
+  disconnect: () => {
+    if (window.$chatwoot && typeof window.$chatwoot.disconnect === 'function') {
+      window.$chatwoot.disconnect();
+    }
+  },
 };
+
+
+
