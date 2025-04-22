@@ -208,6 +208,30 @@ const runSDK = ({ baseUrl, websiteToken }) => {
       // remove our SDK globals
       delete window.$chatwoot;
     },
+    disconnectWebsocket() {
+      const iframe = IFrameHelper.getAppFrame();
+      if (iframe) {
+        // unload the widget, closing its WS
+        iframe.src = 'about:blank';
+        window.$chatwoot.hasLoaded = false;
+      }
+    },
+  
+    /**
+     * Reconnects the widget’s WebSocket by reloading the iframe to the widget URL.
+     */
+    reconnectWebsocket() {
+      const iframe = IFrameHelper.getAppFrame();
+      if (iframe) {
+        const url = IFrameHelper.getUrl({
+          baseUrl: window.$chatwoot.baseUrl,
+          websiteToken: window.$chatwoot.websiteToken,
+        });
+        iframe.src = url;
+        // hasLoaded will be set true once the iframe posts its "loaded" event
+        window.$chatwoot.hasLoaded = false;
+      }
+    },
     connect() {
       IFrameHelper.createFrame({
         baseUrl,
@@ -229,6 +253,8 @@ window.chatwootSDK = {
       window.$chatwoot.disconnect();
     }
   },
+  disconnectWebsocket: () => window.$chatwoot?.disconnectWebsocket(),
+  reconnectWebsocket: () => window.$chatwoot?.reconnectWebsocket(),
 };
 
 
