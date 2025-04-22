@@ -223,12 +223,16 @@ const runSDK = ({ baseUrl, websiteToken }) => {
     reconnectWebsocket() {
       const iframe = IFrameHelper.getAppFrame();
       if (iframe) {
-        const url = IFrameHelper.getUrl({
+        // build the exact same URL createFrame would use
+        const cwCookie = Cookies.get('cw_conversation');
+        let url = IFrameHelper.getUrl({
           baseUrl: window.$chatwoot.baseUrl,
           websiteToken: window.$chatwoot.websiteToken,
         });
+        if (cwCookie) {
+          url += `&cw_conversation=${cwCookie}`;
+        }
         iframe.src = url;
-        // hasLoaded will be set true once the iframe posts its "loaded" event
         window.$chatwoot.hasLoaded = false;
       }
     },
