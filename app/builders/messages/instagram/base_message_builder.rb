@@ -94,10 +94,9 @@ class Messages::Instagram::BaseMessageBuilder < Messages::Messenger::MessageBuil
   def build_message
     # Duplicate webhook events may be sent for the same message
     # when a user is connected to the Instagram account through both Messenger and Instagram login.
+    # There is chance for echo events to be sent for the same message.
     # Therefore, we need to check if the message already exists before creating it.
     return if message_already_exists?
-
-    return if @outgoing_echo
 
     return if message_content.blank? && all_unsupported_files?
 
@@ -153,11 +152,13 @@ class Messages::Instagram::BaseMessageBuilder < Messages::Messenger::MessageBuil
   end
 
   def message_already_exists?
-    cw_message = conversation.messages.where(
-      source_id: @messaging[:message][:mid]
-    ).first
+    find_message_by_source_id(@messaging[:message][:mid]).present?
+  end
 
-    cw_message.present?
+  def find_message_by_source_id(source_id)
+    return unless source_id
+
+    @message = Message.find_by(source_id: source_id)
   end
 
   def all_unsupported_files?

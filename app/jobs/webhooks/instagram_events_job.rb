@@ -8,7 +8,7 @@ class Webhooks::InstagramEventsJob < MutexApplicationJob
   def perform(entries)
     @entries = entries
 
-    key = format(::Redis::Alfred::IG_MESSAGE_MUTEX, sender_id: sender_id, ig_account_id: ig_account_id)
+    key = format(::Redis::Alfred::IG_MESSAGE_MUTEX, sender_id: contact_instagram_id, ig_account_id: ig_account_id)
     with_lock(key) do
       process_entries(entries)
     end
@@ -24,6 +24,11 @@ class Webhooks::InstagramEventsJob < MutexApplicationJob
   private
 
   def process_single_entry(entry)
+    if test_event?(entry)
+      process_test_event(entry)
+      return
+    end
+
     process_messages(entry)
   end
 
@@ -46,6 +51,20 @@ class Webhooks::InstagramEventsJob < MutexApplicationJob
     messaging[:message].present? && messaging[:message][:is_echo].present?
   end
 
+  def test_event?(entry)
+    entry[:changes].present?
+  end
+
+  def process_test_event(entry)
+    messaging = extract_messaging_from_test_event(entry)
+
+    Instagram::TestEventService.new(messaging).perform if messaging.present?
+  end
+
+  def extract_messaging_from_test_event(entry)
+    entry[:changes].first&.dig(:value) if entry[:changes].present?
+  end
+
   def instagram_id(messaging)
     if agent_message_via_echo?(messaging)
       messaging[:sender][:id]
@@ -56,6 +75,23 @@ class Webhooks::InstagramEventsJob < MutexApplicationJob
 
   def ig_account_id
     @entries&.first&.dig(:id)
+  end
+
+  def contact_instagram_id
+    entry = @entries&.first
+    return nil unless entry
+
+    # Handle both messaging and standby arrays
+    messaging = (entry[:messaging].presence || entry[:standby] || []).first
+    return nil unless messaging
+
+    # For echo messages (outgoing from our account), use recipient's ID (the contact)
+    # For incoming messages (from contact), use sender's ID (the contact)
+    if messaging.dig(:message, :is_echo)
+      messaging.dig(:recipient, :id)
+    else
+      messaging.dig(:sender, :id)
+    end
   end
 
   def sender_id

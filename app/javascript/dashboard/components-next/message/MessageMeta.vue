@@ -19,11 +19,18 @@ const {
   isAWebWidgetInbox,
   isAWhatsAppChannel,
   isAnEmailChannel,
-  isAInstagramChannel,
+  isAnInstagramChannel,
+  isATiktokChannel,
 } = useInbox();
 
-const { status, isPrivate, createdAt, sourceId, messageType } =
-  useMessageContext();
+const {
+  status,
+  isPrivate,
+  createdAt,
+  sourceId,
+  messageType,
+  contentAttributes,
+} = useMessageContext();
 
 const readableTime = computed(() =>
   messageTimestamp(createdAt.value, 'LLL d, h:mm a')
@@ -31,6 +38,11 @@ const readableTime = computed(() =>
 
 const showStatusIndicator = computed(() => {
   if (isPrivate.value) return false;
+  // Don't show status for failed messages, we already show error message
+  if (status.value === MESSAGE_STATUS.FAILED) return false;
+  // Don't show status for deleted messages
+  if (contentAttributes.value?.deleted) return false;
+
   if (messageType.value === MESSAGE_TYPES.OUTGOING) return true;
   if (messageType.value === MESSAGE_TYPES.TEMPLATE) return true;
 
@@ -49,7 +61,8 @@ const isSent = computed(() => {
     isAFacebookInbox.value ||
     isASmsInbox.value ||
     isATelegramChannel.value ||
-    isAInstagramChannel.value
+    isAnInstagramChannel.value ||
+    isATiktokChannel.value
   ) {
     return sourceId.value && status.value === MESSAGE_STATUS.SENT;
   }
@@ -67,7 +80,8 @@ const isDelivered = computed(() => {
     isAWhatsAppChannel.value ||
     isATwilioChannel.value ||
     isASmsInbox.value ||
-    isAFacebookInbox.value
+    isAFacebookInbox.value ||
+    isATiktokChannel.value
   ) {
     return sourceId.value && status.value === MESSAGE_STATUS.DELIVERED;
   }
@@ -89,7 +103,8 @@ const isRead = computed(() => {
     isAWhatsAppChannel.value ||
     isATwilioChannel.value ||
     isAFacebookInbox.value ||
-    isAInstagramChannel.value
+    isAnInstagramChannel.value ||
+    isATiktokChannel.value
   ) {
     return sourceId.value && status.value === MESSAGE_STATUS.READ;
   }
